@@ -79,7 +79,7 @@ public class LoginService {
             return new ResponseEntity<>(new MessageTokenDto("이메일 정보 없음", null), HttpStatus.NOT_FOUND);
         }
 
-        // 가입된 사용자가 아닌 경우
+        // 이메일 정보가 있으면
         if(!duplicatedEmail(userInfo.get("kakao_account").get("email").asText())) {
             // 현재 가입되지 않은 사용자의 경우 -> 회원가입
             UserDto userDto = UserDto.builder()
@@ -89,7 +89,6 @@ public class LoginService {
                     .email(userInfo.at("/kakao_account/email").asText())
                     .profileImage(userInfo.at("/properties/profile_image").asText())
                     .build();
-            userMapper.join(userDto);
         }
 
         //로그인

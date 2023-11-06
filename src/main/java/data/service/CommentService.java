@@ -84,6 +84,7 @@ public class CommentService {
         List<CommentDto.Response> topLevelComments = new ArrayList<>();
 
         for (CommentDto.Response comment : allComments) {
+            comment.setIsAuthorized(true);
             commentMap.put(comment.getId(), comment);
 
             if (comment.getParentId() == 0) {
@@ -92,8 +93,7 @@ public class CommentService {
 
             if (comment.getIsPrivate() && comment.getUserId() != userId) {
                 if (comment.getUserId() != userId) {
-                    comment.setNickname(comment.getNickname().charAt(0) + "**");
-                    comment.setContent("");
+                    comment.setIsAuthorized(false);
                 }
             }
             comment.setReplies(new ArrayList<>());

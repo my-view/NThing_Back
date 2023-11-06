@@ -2,6 +2,8 @@ package data.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
@@ -66,27 +68,33 @@ public class CommentDto {
     public static class Response {
         private int id;
         private String content;
-        @JsonIgnore
+        private String nickname;
+        private String profileImage;
         private boolean isPrivate;
-        @JsonIgnore
+        @JsonProperty("is_authorized")
+        private boolean isAuthorized;
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
         private Timestamp createdAt;
-        @JsonIgnore
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
         private Timestamp updatedAt;
         @JsonIgnore
         private int userId;
-        private String nickname;
-        private String profileImage;
         @JsonIgnore
         private int parentId;
+        @JsonInclude(JsonInclude.Include.NON_EMPTY)
         private List<CommentDto.Response> replies;
 
         public boolean getIsPrivate() {
             return isPrivate;
         }
 
-        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
-        public Timestamp writtenAt() {
-            return updatedAt != null ? updatedAt : createdAt;
+        @JsonIgnore
+        public boolean getIsAuthorized() {
+            return isAuthorized;
+        }
+
+        public void setIsAuthorized(boolean authorized) {
+            isAuthorized = authorized;
         }
     }
 }

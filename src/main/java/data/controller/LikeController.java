@@ -36,20 +36,31 @@ public class LikeController {
     @PostMapping("/{purchaseId}/like")
     public ResponseEntity<?> createLike(
             @RequestHeader(value = AUTHORIZATION_HEADER, required = false) String token,
-            @PathVariable int purchaseId
+            @PathVariable int purchaseId,
+            @RequestBody LikeDto.Request request
     ) {
         try {
             validateToken(token);
             int userId = jwtProvider.parseJwt(token);
             Optional<Integer> likeIdOptional = likeService.findLikeIdByUserIdAndPurchaseId(userId, purchaseId);
-            if (likeIdOptional.isPresent()) {
-                likeService.deleteLike(likeIdOptional.get());
-                return ResponseEntity.ok(new LikeDto.LikeResponse(false));
+
+            if (request.isValue()) {
+                if (likeIdOptional.isPresent()) {
+                    return ResponseEntity.ok().build();
+                } else {
+                    LikeDto likeDto = buildLikeDtoFromTokenAndPurchaseId(token, purchaseId);
+                    likeService.createLike(likeDto);
+                    return ResponseEntity.status(HttpStatus.CREATED).build();
+                }
             } else {
-                LikeDto.Like likeDto = buildLikeDtoFromTokenAndPurchaseId(token, purchaseId);
-                likeService.createLike(likeDto);
-                return ResponseEntity.ok(new LikeDto.LikeResponse(true));
+                if (likeIdOptional.isPresent()){
+                    likeService.deleteLike(likeIdOptional.get());
+                    return ResponseEntity.noContent().build();
+                } else {
+                    return ResponseEntity.notFound().build();
+                }
             }
+
         } catch (Exception e) {
             return handleException(e);
         }
@@ -61,11 +72,11 @@ public class LikeController {
         }
     }
 
-    private LikeDto.Like buildLikeDtoFromTokenAndPurchaseId(String token, int purchaseId) {
+    private LikeDto buildLikeDtoFromTokenAndPurchaseId(String token, int purchaseId) {
         PurchaseDto.Detail purchase = purchaseService.findPurchaseById(purchaseId);
         int purchaseIdFromDb = purchase.getId();
         int userId = jwtProvider.parseJwt(token);
-        LikeDto.Like likeDto = new LikeDto.Like();
+        LikeDto likeDto = new LikeDto();
         likeDto.setUserId(userId);
         likeDto.setPurchaseId(purchaseIdFromDb);
         return likeDto;

@@ -5,26 +5,19 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Getter;
 import lombok.Setter;
 
-
+@Setter
+@Getter
+@JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 public class LikeDto {
+    private int id;
+    private int userId;
+    private int purchaseId;
 
-    @Setter
-    @Getter
-    @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
-    public static class Like {
-        private int id;
-        private int userId;
-        private int purchaseId;
-    }
-
-    @Setter
-    @Getter
-    @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
-    public static class LikeResponse {
+    public static class Request {
         private boolean value;
 
-        public LikeResponse(boolean value) {
-            this.value = value;
+        public boolean isValue() {
+            return value;
         }
     }
 }

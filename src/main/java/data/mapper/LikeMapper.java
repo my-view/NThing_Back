@@ -10,7 +10,7 @@ import java.util.Optional;
 
 @Mapper
 public interface LikeMapper {
-    int createLike(LikeDto.Like likeDto);
+    int createLike(LikeDto likeDto);
     List<PurchaseDto.Summary> findLikedPurchasesByUserId(int userId);
     Optional<Integer> findLikeIdByUserIdAndPurchaseId(@Param("user_id") int userId, @Param("purchase_id") int purchaseId);
     void deleteLike(int id);

@@ -66,7 +66,7 @@ public class LikeController {
     }
 
     private LikeDto buildLikeDtoFromTokenAndPurchaseId(String token, int purchaseId) {
-        PurchaseDto.Detail purchase = purchaseService.findPurchaseById(purchaseId);
+        PurchaseDto.Detail purchase = purchaseService.findPurchaseById(purchaseId, token);
         int purchaseIdFromDb = purchase.getId();
         int userId = jwtProvider.parseJwt(token);
         LikeDto likeDto = new LikeDto();

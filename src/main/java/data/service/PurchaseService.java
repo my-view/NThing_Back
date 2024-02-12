@@ -44,7 +44,7 @@ public class PurchaseService {
 
         // 채팅방 생성
         chatService.createChatRoom(ChatRoomDto.builder().purchaseId(purchaseId).build());
-        return findPurchaseById(createdPurchaseID);
+        return findPurchaseById(createdPurchaseID, token);
     }
 
     public List<PurchaseDto.Summary> findAllPurchase(Map<String, Object> map) {
@@ -64,9 +64,9 @@ public class PurchaseService {
             return generatePurchaseDtoList;
     }
 
-    public PurchaseDto.Detail findPurchaseById(int id) {
-        PurchaseDto.Detail detail = purchaseMapper.findPurchaseById(id);
-
+    public PurchaseDto.Detail findPurchaseById(int id, String token) {
+        Map<String, Object> map = Map.of("id", id, "user_id", jwtProvider.parseJwt(token));
+        PurchaseDto.Detail detail = purchaseMapper.findPurchaseById(map);
         if (detail == null)
             throw new PurchaseNotFoundException("Purchase not found for ID: " + id, ErrorCode.PURCHASE_NOT_FOUND);
 
@@ -95,7 +95,7 @@ public class PurchaseService {
             int purchaseId = purchaseRequest.getId();
             List<FileDto.Request> uploadFiles = multiFileUtils.uploadFiles(purchaseRequest.getFiles(), "purchase");
             fileService.saveFiles(purchaseRequest.getId(), uploadFiles);
-            return findPurchaseById(purchaseId);
+            return findPurchaseById(purchaseId, token);
         } else {
             throw new PurchaseNotFoundException("Purchase not found for id: " + id, ErrorCode.PURCHASE_NOT_FOUND);
         }

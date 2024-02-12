@@ -60,8 +60,11 @@ public class PurchaseController {
     }
 
     @GetMapping("/purchase/{id}")
-    public ResponseEntity<ApiResult<PurchaseDto.Detail>> findById(@PathVariable int id) {
-        return ResponseEntity.ok(ApiResult.ok(purchaseService.findPurchaseById(id)));
+    public ResponseEntity<ApiResult<PurchaseDto.Detail>> findById(
+            @PathVariable int id,
+            @RequestHeader("Authorization") String token
+    ) {
+        return ResponseEntity.ok(ApiResult.ok(purchaseService.findPurchaseById(id, token)));
     }
 
     @PatchMapping("/purchase/{id}")

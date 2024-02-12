@@ -60,7 +60,7 @@
                 FROM nthing.like l
                 WHERE true
                     AND l.user_id = #{user_id}
-                    AND l.purchase_id = p.id
+                    AND l.purchase_id = #{id}
             ) AS is_liked,
             (
                 SELECT save_name
@@ -92,7 +92,7 @@
             </choose>
     </select>
 
-    <select id="findPurchaseById" resultType="data.dto.PurchaseDto$Detail" parameterType="int">
+    <select id="findPurchaseById" resultType="data.dto.PurchaseDto$Detail" parameterType="map">
         SELECT
             a.id,
             a.title,
@@ -114,8 +114,8 @@
                 SELECT COUNT(*)
                 FROM nthing.like b
                 WHERE true
-                    AND b.user_id = 1
-                    AND b.purchase_id = a.id
+                    AND b.user_id = #{user_id}
+                    AND b.purchase_id = #{id}
             ) AS is_liked
         FROM
             nthing.purchase AS a

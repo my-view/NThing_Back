@@ -1,14 +1,21 @@
 package data.controller;
 
+import data.dto.ApiResult;
 import data.dto.ChatMessageDto;
+import data.dto.ChatRoomDto;
+import data.dto.CommentDto;
 import data.service.ChatService;
 import data.util.JwtProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.util.List;
 import java.util.Map;
@@ -22,6 +29,19 @@ public class ChatController {
     private final ChatService chatService;
     private final JwtProvider jwtProvider;
 
+    // 채팅 목록, 채팅방 삭제 혹은, 거래 완료 여부 구별하여 리턴하도록, 10개씩?
+    @GetMapping("/chat/rooms")
+    public ResponseEntity<ApiResult<List<ChatRoomDto>>> findChatRoomsByUserId(
+            @RequestHeader(value = "Authorization", required = false) String token) {
+        int userId = tokenValidation(token);
+        return ResponseEntity.ok(ApiResult.ok(chatService.findChatRoomsByUserId(userId)));
+    }
+
+
+
+
+
+    // 스톰프 COMMAND : SEND 메시지 처리
     @MessageMapping("/{roomId}") // prifix(send) + roomid 클라이언트가 메시지를 보낼 경로.
     @SendTo("/room/{roomId}")  // (@DestinationVariable : 경로변수값에 대한 맵핑)
     public ChatMessageDto chat(@DestinationVariable int roomId, ChatMessageDto chatMessageDto, SimpMessageHeaderAccessor accessor) {
@@ -47,5 +67,10 @@ public class ChatController {
         return chatMessageDto;
     }
 
-    //header command 식별 + custom
+    private int tokenValidation(String token) {
+        if (token != null) {
+            return jwtProvider.parseJwt(token);
+        }
+        return 0;
+    }
 }

@@ -46,4 +46,9 @@ public class ChatService {
 
     public void deleteChatRoomUser(ChatRoomDto chatRoomDto) { chatMapper.deleteChatRoomUser(chatRoomDto);}
 
+    // chat room 목록 조회
+    public List<ChatRoomDto> findChatRoomsByUserId(int userId) { return chatMapper.findChatRoomsByUserId(userId);
+
+    }
+
 }

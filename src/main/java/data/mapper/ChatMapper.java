@@ -19,4 +19,6 @@ public interface ChatMapper {
     void createOrUpdateChatRoomUser(ChatRoomDto chatRoomDto);
 
     void deleteChatRoomUser(ChatRoomDto chatRoomDto);
+
+    List<ChatRoomDto> findChatRoomsByUserId(int userId);
 }

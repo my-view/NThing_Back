@@ -41,5 +41,9 @@
         where user_id = #{userId} and chat_room_id = #{chatRoomId};
     </update>
 
+    <select id="findChatRoomsByUserId" parameterType="int" resultType="data.dto.ChatRoomDto">
+        select id, purchase_id, created_at, is_deleted, is_completed
+        from nthing.chat_room;
+    </select>
 
 </mapper>

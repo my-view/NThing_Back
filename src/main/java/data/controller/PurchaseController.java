@@ -88,4 +88,13 @@ public class PurchaseController {
     public ResponseEntity<ApiResult<List<FileDto.Response>>> findAllFileByPurchaseId(@PathVariable int purchaseId) {
         return ResponseEntity.ok(ApiResult.ok(fileService.findAllFileByPurchaseId(purchaseId)));
     }
+
+    @PostMapping("/purchase/{purchaseId}/join")
+    public ResponseEntity<ApiResult<?>> joinPurchase(
+            @PathVariable int purchaseId,
+            @RequestHeader("Authorization") String token
+    ) {
+        purchaseService.joinPurchase(purchaseId, token);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResult.created());
+    }
 }

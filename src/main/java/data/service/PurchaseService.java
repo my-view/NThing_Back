@@ -6,10 +6,14 @@ import data.constants.ErrorCode;
 import data.dto.ChatRoomDto;
 import data.dto.FileDto;
 import data.dto.PurchaseDto;
+import data.dto.PurchaseUserDto;
+import data.exception.AllParticipantsJoinedException;
+import data.exception.AlreadyJoinedException;
 import data.exception.InvalidRequestException;
 import data.exception.PurchaseNotFoundException;
 import data.mapper.FileMapper;
 import data.mapper.PurchaseMapper;
+import data.mapper.PurchaseUserMapper;
 import data.util.JwtProvider;
 import data.util.MultiFileUtils;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +34,7 @@ public class PurchaseService {
     private final JwtProvider jwtProvider;
     private final HttpServletRequest request;
     private final ChatService chatService;
+    private final PurchaseUserMapper purchaseUserMapper;
 
 
     public PurchaseDto.Detail createPurchase(PurchaseDto.Request purchaseRequest, String token) {
@@ -72,13 +77,12 @@ public class PurchaseService {
         return generatePurchaseDtoList;
     }
 
-    public PurchaseDto.Detail findPurchaseById(int id, String token) {
-        Map<String, Object> map = Map.of("id", id, "user_id", jwtProvider.parseJwt(token));
-        PurchaseDto.Detail detail = purchaseMapper.findPurchaseById(map);
-        if (detail == null)
-            throw new PurchaseNotFoundException("Purchase not found for ID: " + id, ErrorCode.PURCHASE_NOT_FOUND);
-
-        List<FileDto.Response> fileList = fileMapper.findAllByPurchaseId(id);
+    public PurchaseDto.Detail findPurchaseById(int purchaseId, String token) {
+        Map<String, Object> map = Map.of("id", purchaseId, "user_id", jwtProvider.parseJwt(token));
+        PurchaseDto.Detail purchase = purchaseMapper.findPurchaseById(map);
+        if (purchase == null)
+            throw new PurchaseNotFoundException("Purchase not found for ID: " + purchaseId, ErrorCode.PURCHASE_NOT_FOUND);
+        List<FileDto.Response> fileList = fileMapper.findAllByPurchaseId(purchaseId);
         List<PurchaseDto.Detail.ImageDto> imageList = new ArrayList<>();
 
         if (!fileList.isEmpty()) {
@@ -91,8 +95,8 @@ public class PurchaseService {
                 imageList.add(imageDto);
             }
         }
-        detail.setImages(imageList);
-        return detail;
+        purchase.setImages(imageList);
+        return purchase;
     }
 
     public PurchaseDto.Detail updatePurchase(PurchaseDto.Request purchaseRequest, String token, int id) {
@@ -119,6 +123,37 @@ public class PurchaseService {
         } else {
             throw new PurchaseNotFoundException("Purchase not found for id: " + id, ErrorCode.PURCHASE_NOT_FOUND);
         }
+    }
+
+    public void joinPurchase(int purchaseId, String token) {
+        int userId = jwtProvider.parseJwt(token);
+        Map<String, Integer> data = Map.of(
+                "purchaseId", purchaseId,
+                "userId", userId
+        );
+
+        Map<String, Object> map = Map.of("id", purchaseId, "user_id", userId);
+        PurchaseDto.Detail purchase = purchaseMapper.findPurchaseById(map);
+
+        if (purchase == null) {
+            throw new PurchaseNotFoundException("Purchase not found for ID: " + purchaseId, ErrorCode.PURCHASE_NOT_FOUND);
+        }
+
+        if (purchase.getDenominator() == purchase.getNumerator()) {
+            throw new AllParticipantsJoinedException("All participants have already joined", ErrorCode.ALL_PARTICIPANTS_JOINED);
+        }
+
+        PurchaseUserDto purchaseUserDto = purchaseUserMapper.findByPurchaseIdAndUserId(data);
+        if (purchaseUserDto != null) {
+            throw new AlreadyJoinedException("already joined", ErrorCode.ALREADY_JOINED);
+        }
+
+        purchaseUserMapper.createPurchaseUser(data);
+        Map<String, Integer> param = Map.of(
+                "id", purchaseId,
+                "numerator", purchase.getNumerator() + 1
+        );
+        purchaseMapper.joinPurchase(param);
     }
 
     private boolean isValidDate(String dateString) {

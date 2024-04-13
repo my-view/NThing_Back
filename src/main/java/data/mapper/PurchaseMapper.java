@@ -15,4 +15,5 @@ public interface PurchaseMapper {
     boolean findPurchaseByIdAndUserId(Map<String, Object> map);
     int updatePurchase(PurchaseDto.Request purchase);
     void deletePurchase(int id);
+    void joinPurchase(Map<String, Integer> map);
 }

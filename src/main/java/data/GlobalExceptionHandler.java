@@ -129,5 +129,18 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse(ErrorCode.ACCESS_TOKEN_EXPIRED);
         return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
-}
 
+    @ExceptionHandler(AlreadyJoinedException.class)
+    public ResponseEntity<Object> handleAlreadyJoinedException(AlreadyJoinedException e) {
+        log.error("already joined", e);
+        ErrorResponse errorResponse = new ErrorResponse(ErrorCode.ALREADY_JOINED);
+        return new ResponseEntity<>(errorResponse, HttpStatus.valueOf(e.getErrorCode().getStatus()));
+    }
+
+    @ExceptionHandler(AllParticipantsJoinedException.class)
+    public ResponseEntity<Object> handleAllParticipantsJoinedException(AllParticipantsJoinedException e) {
+        log.error("All participants have already joined", e);
+        ErrorResponse errorResponse = new ErrorResponse(ErrorCode.ALL_PARTICIPANTS_JOINED);
+        return new ResponseEntity<>(errorResponse, HttpStatus.valueOf(e.getErrorCode().getStatus()));
+    }
+}

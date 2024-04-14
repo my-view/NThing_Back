@@ -97,4 +97,20 @@ public class PurchaseController {
         purchaseService.joinPurchase(purchaseId, token);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResult.created());
     }
+
+    @GetMapping("/purchases/user")
+    public ResponseEntity<ApiResult<List<PurchaseDto.Summary>>> getUserPurchase (
+            String search_keyword,
+            String sort,
+            @RequestParam(defaultValue = "true") boolean status,
+            @RequestHeader(value = "Authorization", required = false) String token
+    ) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("search_keyword", search_keyword);
+        map.put("sort", sort);
+        map.put("status", status);
+        map.put("token", token);
+
+        return ResponseEntity.ok(ApiResult.ok(purchaseService.getUserPurchase(map)));
+    }
 }

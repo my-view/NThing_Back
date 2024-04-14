@@ -16,4 +16,5 @@ public interface PurchaseMapper {
     int updatePurchase(PurchaseDto.Request purchase);
     void deletePurchase(int id);
     void joinPurchase(Map<String, Integer> map);
+    List<PurchaseDto.Summary> findByManagerId(Map<String, Object> map);
 }

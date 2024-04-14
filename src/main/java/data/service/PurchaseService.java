@@ -156,6 +156,25 @@ public class PurchaseService {
         purchaseMapper.joinPurchase(param);
     }
 
+    public List<PurchaseDto.Summary> getUserPurchase(Map<String, Object> map) {
+        String token = (String) map.get("token");
+        if (StringUtils.hasText(token)) {
+            int userId = jwtProvider.parseJwt(token);
+            map.put("userId", userId);
+        }
+        List<PurchaseDto.Summary> result = purchaseMapper.findByManagerId(map);
+        List<PurchaseDto.Summary> generatePurchaseDtoList = new ArrayList<>();
+        for (PurchaseDto.Summary purchaseDto : result) {
+            String image = purchaseDto.getImage();
+            purchaseDto.setImage(image != null
+                    ? multiFileUtils.getDomain() + image
+                    : null
+            );
+            generatePurchaseDtoList.add(purchaseDto);
+        }
+        return generatePurchaseDtoList;
+    }
+
     private boolean isValidDate(String dateString) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         LocalDateTime date = LocalDateTime.parse(dateString, formatter);

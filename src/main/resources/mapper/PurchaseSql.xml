@@ -92,6 +92,55 @@
             </choose>
     </select>
 
+    <select id="findByManagerId" resultType="data.dto.PurchaseDto$Summary" parameterType="map">
+        SELECT
+            p.id,
+            p.title,
+            p.latitude,
+            p.longitude,
+            p.date,
+            p.denominator,
+            p.numerator,
+            p.price,
+            p.place,
+            p.status,
+            (
+            SELECT COUNT(*)
+            FROM nthing.like b
+            WHERE true
+            AND b.user_id = #{userId}
+            AND b.purchase_id = p.id
+            ) AS is_liked,
+            (
+            SELECT save_name
+            FROM nthing.purchase_file
+            WHERE true
+            AND purchase_id = p.id
+            AND delete_yn = false
+            ORDER BY id
+            LIMIT 1
+            ) AS image
+        FROM
+            nthing.purchase AS p
+        WHERE true
+            AND p.delete_yn = false
+            AND p.manager_id = #{userId}
+            <if test="search_keyword != null and search_keyword != ''">
+                AND (p.title LIKE CONCAT('%', #{search_keyword}, '%') OR p.description LIKE CONCAT('%', #{search_keyword}, '%'))
+            </if>
+            <if test="status == true">
+                AND p.status = false
+            </if>
+        <choose>
+            <when test="sort != null and sort != ''">
+                ORDER BY ${sort}
+            </when>
+            <otherwise>
+                ORDER BY -p.created_at
+            </otherwise>
+        </choose>
+    </select>
+
     <select id="findPurchaseById" resultType="data.dto.PurchaseDto$Detail" parameterType="map">
         SELECT
             a.id,

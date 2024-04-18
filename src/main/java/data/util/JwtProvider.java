@@ -27,7 +27,8 @@ public class JwtProvider {
         claims.put("loginId",loginId);
 
         Date now = new Date();
-        Date expiration = new Date(now.getTime() + Duration.ofDays(1).toMillis()); // 만료기간 1일
+        Date expiration = new Date(now.getTime() + Duration.ofMinutes(1).toMillis()); // 만료기간 1분
+//        Date expiration = new Date(now.getTime() + Duration.ofDays(1).toMillis()); // 만료기간 1일
 
         return Jwts.builder()
                 .setClaims(claims)
@@ -45,7 +46,8 @@ public class JwtProvider {
         claims.put("loginId",loginId);
 
         Date now = new Date();
-        Date expiration = new Date(now.getTime() + Duration.ofDays(30).toMillis()); // 만료기간 30일
+        Date expiration = new Date(now.getTime() + Duration.ofMinutes(2).toMillis()); // 만료기간 2분
+//        Date expiration = new Date(now.getTime() + Duration.ofDays(30).toMillis()); // 만료기간 30일
         claims.put("expiration", expiration);
 
         return Jwts.builder()

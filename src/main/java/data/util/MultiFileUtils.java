@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Component
@@ -129,10 +130,12 @@ public class MultiFileUtils {
             HttpServletRequest request = attributes.getRequest();
             String scheme = request.getScheme();
             String serverName = request.getServerName();
-//            int serverPort = request.getServerPort();
-//            String result = scheme + "://" + serverName + ":" + serverPort + "/" + "file/";
-            String result = scheme + "s://" + serverName + "/" + "file/";
-            return result;
+            if (Objects.equals(serverName, "localhost")) {
+                int serverPort = request.getServerPort();
+                return scheme + "://" + serverName + ":" + serverPort + "/" + "file/";
+            } else {
+                return scheme + "s://" + serverName + "/" + "file/";
+            }
         }
         return "";
     }

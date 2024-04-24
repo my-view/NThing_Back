@@ -24,7 +24,7 @@
                 limit 1
             ) as image
         from nthing.purchase as p
-        where id in (select purchase_id from nthing.like where #{user_id})
+        where id in (select purchase_id from nthing.like where user_id=#{user_id})
             and p.delete_yn = 0
             <if test="search_keyword != null and search_keyword != ''">
                 and (p.title LIKE CONCAT('%', #{search_keyword}, '%') or p.description LIKE CONCAT('%', #{search_keyword}, '%'))

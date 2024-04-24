@@ -1,6 +1,7 @@
 package data.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import java.sql.Timestamp;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
@@ -25,6 +26,9 @@ public class UserDto {
     private int credit;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private Timestamp subscriptionDate;
+    @JsonIgnore
     private int collegeId;
+    private CollegeDto college;
+    @JsonIgnore
     private String refreshToken;
 }

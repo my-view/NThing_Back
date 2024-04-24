@@ -1,87 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="data.mapper.UserMapper">
-
-    <!-- 확인 후 중복 기능 삭제-->
-    <select id="emailDuplicateCheck" resultType="data.dto.UserDto" parameterType="String">
-        SELECT * FROM user WHERE email = #{email}
-    </select>
-    <insert id="insertUser" parameterType="data.dto.UserDto" useGeneratedKeys="true" keyProperty="id">
-        insert into user (provider, provider_id, nickname, email, profile_image, subscription_date)
-        values (#{provider}, #{providerId}, #{nickname}, #{email}, #{profileImage}, now())
-    </insert>
-
     <insert id="join" parameterType="UserDto" useGeneratedKeys="true" keyProperty="id">
         insert into user
-            (
-             id
-             ,nickname
-             ,email
-             ,profile_image
-             ,credit
-             ,subscription_date
-             ,college_id
-             ,provider_id
-             ,provider
-            )
+            (id, nickname, email, profile_image, credit, subscription_date, college_id, provider_id, provider)
         values
-            (
-             null
-             ,#{nickname}
-             ,#{email}
-             ,#{profileImage}
-             ,#{credit}
-             ,now()
-             ,null
-             ,#{providerId}
-             ,#{provider}
-            )
+            (null, #{nickname}, #{email}, #{profileImage}, #{credit}, now(), null, #{providerId}, #{provider})
     </insert>
-    <select id="findAll" resultType="UserDto">
-        SELECT
-            *
-        FROM
-            user
-    </select>
-    <select id="findById" resultType="userDto" parameterType="int">
-        SELECT
-            *
-        FROM
-            user
-        where
-            id = #{id}
-    </select>
-    <select id="findByEmail" resultType="int" parameterType="string">
-        SELECT
-            id
-        FROM
-            user
-        where
-            email = #{email}
-    </select>
-    <select id="isValidEmail" resultType="boolean" parameterType="string">
-        SELECT
-            count(id)
-        FROM
-            user
-        where
-            email = #{email}
-    </select>
-    <delete id="deleteUser" parameterType="int">
-        delete from user
-        where
-            id = #{id}
-    </delete>
-    
-    <select id="getTokenById" parameterType="int">
-        select refresh_token
-        from user
-        where id= #{id}
-    </select>
+
+    <update id="updateUser" parameterType="UserDto">
+        update user
+        <set>
+            nickname = #{nickname},
+            email = #{email},
+            profile_image = #{profileImage}
+        </set>
+        <trim prefix="where" prefixOverrides="and">
+            and id = #{id}
+        </trim>
+    </update>
 
     <update id="updateRefreshToken" parameterType="UserDto">
         update user
         set refresh_token = #{refreshToken}
         where id = #{id}
     </update>
+
+    <select id="findAll" resultType="UserDto">
+        SELECT *
+        FROM user
+    </select>
+
+    <select id="findById" resultType="userDto" parameterType="int">
+        SELECT *
+        FROM user
+        where id = #{id}
+    </select>
+
+    <delete id="deleteUser" parameterType="int">
+        delete from user
+        where id = #{id}
+    </delete>
+
+    <select id="findByEmail" resultType="int" parameterType="string">
+        SELECT id
+        FROM user
+        where email = #{email}
+    </select>
+
+    <select id="isValidEmail" resultType="boolean" parameterType="string">
+        SELECT count(id)
+        FROM user
+        where email = #{email}
+    </select>
+
+    <select id="getTokenById" parameterType="int" resultType="String">
+        select refresh_token
+        from user
+        where id= #{id}
+    </select>
 </mapper>

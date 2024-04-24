@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.List;
@@ -32,6 +33,21 @@ public class UserController {
     @GetMapping("")
     public ResponseEntity<ApiResult<UserDto>> findById(@RequestHeader("Authorization") String token) {
         return ResponseEntity.ok(ApiResult.ok(userService.findById(token)));
+    }
+
+    @PatchMapping("")
+    public ResponseEntity<ApiResult<UserDto>> updateUser(
+            @RequestHeader("Authorization") String token,
+            @RequestParam("nickname") String nickname,
+            @RequestParam("email") String email,
+            @RequestParam("profile_image") MultipartFile file
+    ) {
+        Map<String, String> data = Map.of(
+                "token", token,
+                "nickname", nickname,
+                "email", email
+        );
+        return ResponseEntity.ok(ApiResult.ok(userService.updateUser(data, file)));
     }
 
     @GetMapping("/like")

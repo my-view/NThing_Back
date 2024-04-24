@@ -7,14 +7,14 @@ import java.util.List;
 
 @Mapper
 public interface UserMapper {
-
     int join(UserDto userDto);
+    void updateUser(UserDto userDto);
+    void updateRefreshToken(UserDto userDto);
     List<UserDto> findAll();
     UserDto findById(int id);
-    int findByEmail(String email);
-    boolean isValidEmail(String email);
     void deleteUser(int id);
 
+    int findByEmail(String email);
+    boolean isValidEmail(String email);
     String getTokenById(int id);
-    void updateRefreshToken(UserDto userDto);
 }

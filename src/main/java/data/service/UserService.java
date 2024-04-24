@@ -1,32 +1,51 @@
 package data.service;
 
 import data.constants.ErrorCode;
-import data.dto.JwtToken;
-import data.dto.MessageTokenDto;
-import data.dto.UserDto;
+import data.dto.*;
 import data.exception.UnauthorizedException;
 import data.exception.UserNotFoundException;
+import data.mapper.CollegeMapper;
 import data.mapper.UserMapper;
 import data.util.JwtProvider;
+import data.util.MultiFileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Slf4j
 public class UserService {
 
     private final UserMapper userMapper;
+    private final CollegeMapper collegeMapper;
     private final JwtProvider jwtProvider;
+    private final MultiFileUtils multiFileUtils;
 
     @Autowired
-    public UserService(UserMapper userMapper, JwtProvider jwtProvider) {
+    public UserService(UserMapper userMapper, CollegeMapper collegeMapper, JwtProvider jwtProvider, MultiFileUtils multiFileUtils) {
         this.userMapper = userMapper;
+        this.collegeMapper = collegeMapper;
         this.jwtProvider = jwtProvider;
+        this.multiFileUtils = multiFileUtils;
+    }
+
+    public UserDto updateUser(Map<String, String> map, MultipartFile file) {
+        int userId = jwtProvider.parseJwt(map.get("token"));
+        String url = multiFileUtils.getDomain() + multiFileUtils.uploadFile(file, "user").getSave_name();
+
+        UserDto user = new UserDto();
+        user.setId(userId);
+        user.setNickname(map.get("nickname"));
+        user.setEmail(map.get("email"));
+        user.setProfileImage(url);
+        userMapper.updateUser(user);
+        return findById(map.get("token"));
     }
 
     public List<UserDto> findAll() {
@@ -36,6 +55,7 @@ public class UserService {
     public UserDto findById(String token) {
         int loginId = jwtProvider.parseJwt(token);
         UserDto user = userMapper.findById(loginId);
+        user.setCollege(collegeMapper.selectCollegeById(user.getCollegeId()));
         if (user == null) {
             throw new UserNotFoundException("User not found for the provided token.", ErrorCode.USER_NOT_FOUND);
         }

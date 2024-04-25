@@ -12,7 +12,6 @@
         update user
         <set>
             nickname = #{nickname},
-            email = #{email},
             profile_image = #{profileImage}
         </set>
         <trim prefix="where" prefixOverrides="and">

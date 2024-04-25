@@ -42,7 +42,6 @@ public class UserService {
         UserDto user = new UserDto();
         user.setId(userId);
         user.setNickname(map.get("nickname"));
-        user.setEmail(map.get("email"));
         user.setProfileImage(url);
         userMapper.updateUser(user);
         return findById(map.get("token"));

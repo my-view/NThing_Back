@@ -39,13 +39,11 @@ public class UserController {
     public ResponseEntity<ApiResult<UserDto>> updateUser(
             @RequestHeader("Authorization") String token,
             @RequestParam("nickname") String nickname,
-            @RequestParam("email") String email,
             @RequestParam("profile_image") MultipartFile file
     ) {
         Map<String, String> data = Map.of(
                 "token", token,
-                "nickname", nickname,
-                "email", email
+                "nickname", nickname
         );
         return ResponseEntity.ok(ApiResult.ok(userService.updateUser(data, file)));
     }

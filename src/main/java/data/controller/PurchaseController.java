@@ -61,6 +61,22 @@ public class PurchaseController {
         return ResponseEntity.ok(ApiResult.ok(purchaseService.findAllPurchase(map)));
     }
 
+    @GetMapping("/purchases/user")
+    public ResponseEntity<ApiResult<List<PurchaseDto.Summary>>> findByUserId (
+            String search_keyword,
+            String sort,
+            @RequestParam(defaultValue = "false") boolean status,
+            @RequestHeader(value = "Authorization", required = false) String token
+    ) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("search_keyword", search_keyword);
+        map.put("sort", sort);
+        map.put("status", status);
+        map.put("token", token);
+
+        return ResponseEntity.ok(ApiResult.ok(purchaseService.findByUserId(map)));
+    }
+
     @GetMapping("/purchase/{id}")
     public ResponseEntity<ApiResult<PurchaseDto.Detail>> findById(
             @PathVariable int id,
@@ -98,11 +114,11 @@ public class PurchaseController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResult.created());
     }
 
-    @GetMapping("/purchases/user")
-    public ResponseEntity<ApiResult<List<PurchaseDto.Summary>>> getUserPurchase (
+    @GetMapping("/purchases/manager")
+    public ResponseEntity<ApiResult<List<PurchaseDto.Summary>>> findByManagerId (
             String search_keyword,
             String sort,
-            @RequestParam(defaultValue = "true") boolean status,
+            @RequestParam(defaultValue = "false") boolean status,
             @RequestHeader(value = "Authorization", required = false) String token
     ) {
         Map<String, Object> map = new HashMap<>();
@@ -111,6 +127,6 @@ public class PurchaseController {
         map.put("status", status);
         map.put("token", token);
 
-        return ResponseEntity.ok(ApiResult.ok(purchaseService.getUserPurchase(map)));
+        return ResponseEntity.ok(ApiResult.ok(purchaseService.findByManagerId(map)));
     }
 }

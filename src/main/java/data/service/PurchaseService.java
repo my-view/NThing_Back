@@ -77,6 +77,25 @@ public class PurchaseService {
         return generatePurchaseDtoList;
     }
 
+    public List<PurchaseDto.Summary> findByUserId(Map<String, Object> map) {
+        String token = (String) map.get("token");
+        if (StringUtils.hasText(token)) {
+            int userId = jwtProvider.parseJwt(token);
+            map.put("userId", userId);
+        }
+        List<PurchaseDto.Summary> result = purchaseMapper.findByUserId(map);
+        List<PurchaseDto.Summary> generatePurchaseDtoList = new ArrayList<>();
+        for (PurchaseDto.Summary purchaseDto : result) {
+            String image = purchaseDto.getImage();
+            purchaseDto.setImage(image != null
+                    ? multiFileUtils.getDomain() + image
+                    : null
+            );
+            generatePurchaseDtoList.add(purchaseDto);
+        }
+        return generatePurchaseDtoList;
+    }
+
     public PurchaseDto.Detail findPurchaseById(int purchaseId, String token) {
         Map<String, Object> map = Map.of("id", purchaseId, "user_id", jwtProvider.parseJwt(token));
         PurchaseDto.Detail purchase = purchaseMapper.findPurchaseById(map);
@@ -156,7 +175,7 @@ public class PurchaseService {
         purchaseMapper.joinPurchase(param);
     }
 
-    public List<PurchaseDto.Summary> getUserPurchase(Map<String, Object> map) {
+    public List<PurchaseDto.Summary> findByManagerId(Map<String, Object> map) {
         String token = (String) map.get("token");
         if (StringUtils.hasText(token)) {
             int userId = jwtProvider.parseJwt(token);

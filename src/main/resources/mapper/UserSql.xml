@@ -8,14 +8,18 @@
             (null, #{nickname}, #{email}, #{profileImage}, #{credit}, now(), null, #{providerId}, #{provider})
     </insert>
 
-    <update id="updateUser" parameterType="UserDto">
+    <update id="updateUser" parameterType="map">
         update user
         <set>
-            nickname = #{nickname},
-            profile_image = #{profileImage}
+            <if test="nickname != null and nickname !=''">
+                nickname = #{nickname},
+            </if>
+            <if test="profileImage != null and profileImage != ''">
+                profile_image = #{profileImage}
+            </if>
         </set>
         <trim prefix="where" prefixOverrides="and">
-            and id = #{id}
+            and id = #{userId}
         </trim>
     </update>
 

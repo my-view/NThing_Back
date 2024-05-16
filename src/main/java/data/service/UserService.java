@@ -35,16 +35,15 @@ public class UserService {
         this.multiFileUtils = multiFileUtils;
     }
 
-    public UserDto updateUser(Map<String, String> map, MultipartFile file) {
-        int userId = jwtProvider.parseJwt(map.get("token"));
-        String url = multiFileUtils.getDomain() + multiFileUtils.uploadFile(file, "user").getSave_name();
-
-        UserDto user = new UserDto();
-        user.setId(userId);
-        user.setNickname(map.get("nickname"));
-        user.setProfileImage(url);
-        userMapper.updateUser(user);
-        return findById(map.get("token"));
+    public UserDto updateUser(Map<String, Object> map, MultipartFile file) {
+        String token = (String) map.get("token");
+        map.put("userId", jwtProvider.parseJwt(token));
+        if (file != null) {
+            String url = multiFileUtils.getDomain() + multiFileUtils.uploadFile(file, "user").getSave_name();
+            map.put("profileImage", url);
+        }
+        userMapper.updateUser(map);
+        return findById(token);
     }
 
     public List<UserDto> findAll() {

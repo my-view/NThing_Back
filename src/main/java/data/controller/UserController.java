@@ -38,14 +38,13 @@ public class UserController {
     @PatchMapping("")
     public ResponseEntity<ApiResult<UserDto>> updateUser(
             @RequestHeader("Authorization") String token,
-            @RequestParam("nickname") String nickname,
-            @RequestParam("profile_image") MultipartFile file
+            @RequestParam(value = "nickname", required = false, defaultValue = "") String nickname,
+            @RequestParam(value = "profile_image", required = false) MultipartFile file
     ) {
-        Map<String, String> data = Map.of(
-                "token", token,
-                "nickname", nickname
-        );
-        return ResponseEntity.ok(ApiResult.ok(userService.updateUser(data, file)));
+        Map<String, Object> map = new HashMap<>();
+        map.put("token", token);
+        map.put("nickname", nickname);
+        return ResponseEntity.ok(ApiResult.ok(userService.updateUser(map, file)));
     }
 
     @GetMapping("/like")

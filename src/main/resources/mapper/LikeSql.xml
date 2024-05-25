@@ -6,7 +6,7 @@
         values (#{userId}, #{purchaseId})
     </insert>
     <select id="findLikedPurchasesByUserId" parameterType="map" resultType="data.dto.PurchaseDto$Summary">
-        select p.id, p.title, p.latitude, p.longitude, p.date, p.denominator, p.numerator, p.price, p.place, p.status
+        select p.id, p.title, p.latitude, p.longitude, p.date, p.denominator, p.numerator, p.price, p.place, p.is_completed
             ,(
                 select count(*)
                 from nthing.like l

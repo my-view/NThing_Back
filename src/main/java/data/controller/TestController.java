@@ -35,7 +35,8 @@ public class TestController {
     public ResponseEntity<ApiResult<MessageTokenDto>> getTestToken(@PathVariable int id) {
         String accessToken = jwtProvider.createToken(id);
         String refreshToken = jwtProvider.createRefreshToken(id);
-        userService.findById(accessToken);
+        int userId = jwtProvider.parseJwt(accessToken);
+        userService.findById(userId);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResult.created(new MessageTokenDto("테스트 토큰 생성", accessToken, refreshToken)));

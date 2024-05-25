@@ -37,22 +37,22 @@ public class UserService {
 
     public UserDto updateUser(Map<String, Object> map, MultipartFile file) {
         String token = (String) map.get("token");
-        map.put("userId", jwtProvider.parseJwt(token));
+        int userId = jwtProvider.parseJwt(token);
+        map.put("userId", userId);
         if (file != null) {
             String url = multiFileUtils.getDomain() + multiFileUtils.uploadFile(file, "user").getSave_name();
             map.put("profileImage", url);
         }
         userMapper.updateUser(map);
-        return findById(token);
+        return findById(userId);
     }
 
     public List<UserDto> findAll() {
         return userMapper.findAll();
     }
 
-    public UserDto findById(String token) {
-        int loginId = jwtProvider.parseJwt(token);
-        UserDto user = userMapper.findById(loginId);
+    public UserDto findById(int userId) {
+        UserDto user = userMapper.findById(userId);
         user.setCollege(collegeMapper.selectCollegeById(user.getCollegeId()));
         if (user == null) {
             throw new UserNotFoundException("User not found for the provided token.", ErrorCode.USER_NOT_FOUND);

@@ -1,6 +1,8 @@
 package data.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
@@ -42,7 +44,7 @@ public class PurchaseDto {
 
         private int numerator = 1;
 
-        private boolean status = false;
+        private boolean is_completed = false;
 
         @NotNull(message="가격은 필수 입니다.")
         private int price;
@@ -77,7 +79,7 @@ public class PurchaseDto {
         private int numerator;
         private int price;
         private String place;
-        private boolean status;
+        private int isCompleted;
         private boolean isLiked;
         private String image;
     }
@@ -98,20 +100,23 @@ public class PurchaseDto {
         private Timestamp date;
         private int denominator;
         private int numerator;
-        private boolean status;
         private int price;
         private String place;
+        private int categoryId;
+        private String categoryName;
+        private int isLiked;
+        private int isCompleted;
+        private int isJoined;
+        private int isManager;
+        @JsonIgnore
+        private int managerId;
+        @JsonIgnoreProperties({"provider", "provider_id", "email", "credit", "subscription_date", "college"})
+        private UserDto manager;
+        private List<ImageDto> images;
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
         private Timestamp createdAt;
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
         private Timestamp updatedAt;
-        private String manager;
-        private int categoryId;
-        private String categoryName;
-        private int isLiked;
-        private int isManager;
-
-        private List<ImageDto> images;
 
         @Getter
         @Setter

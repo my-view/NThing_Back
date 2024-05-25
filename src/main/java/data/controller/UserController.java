@@ -32,7 +32,8 @@ public class UserController {
 
     @GetMapping("")
     public ResponseEntity<ApiResult<UserDto>> findById(@RequestHeader("Authorization") String token) {
-        return ResponseEntity.ok(ApiResult.ok(userService.findById(token)));
+        int userId = jwtProvider.parseJwt(token);
+        return ResponseEntity.ok(ApiResult.ok(userService.findById(userId)));
     }
 
     @PatchMapping("")

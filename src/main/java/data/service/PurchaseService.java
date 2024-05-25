@@ -3,10 +3,7 @@ package data.service;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import data.constants.ErrorCode;
-import data.dto.ChatRoomDto;
-import data.dto.FileDto;
-import data.dto.PurchaseDto;
-import data.dto.PurchaseUserDto;
+import data.dto.*;
 import data.exception.AllParticipantsJoinedException;
 import data.exception.AlreadyJoinedException;
 import data.exception.InvalidRequestException;
@@ -35,18 +32,29 @@ public class PurchaseService {
     private final HttpServletRequest request;
     private final ChatService chatService;
     private final PurchaseUserMapper purchaseUserMapper;
-
+    private final UserService userService;
 
     public PurchaseDto.Detail createPurchase(PurchaseDto.Request purchaseRequest, String token) {
         if (isValidDate(purchaseRequest.getDate()))
             throw new InvalidRequestException("Invalid date: " + purchaseRequest.getDate(), ErrorCode.INVALID_INPUT_VALUE);
         int userId = jwtProvider.parseJwt(token);
+
+        // manager_id 추가
         purchaseRequest.setManager_id(userId);
+
+        // 거래 생성
         purchaseMapper.createPurchase(purchaseRequest);
+
         int createdPurchaseID = purchaseRequest.getId();
         int purchaseId = purchaseRequest.getId();
+
+        // 거래의 이미지 업로드
         List<FileDto.Request> files = multiFileUtils.uploadFiles(purchaseRequest.getAdded_files(), "purchase");
         fileService.saveFiles(purchaseId, files);
+
+        // purchaseUser 생성
+        Map<String, Integer> data = Map.of("purchaseId", purchaseId, "userId", userId);
+        purchaseUserMapper.createPurchaseUser(data);
 
         // 채팅방 생성
         chatService.createChatRoom(ChatRoomDto.builder().purchaseId(purchaseId).build());
@@ -97,13 +105,13 @@ public class PurchaseService {
     }
 
     public PurchaseDto.Detail findPurchaseById(int purchaseId, String token) {
-        Map<String, Object> map = Map.of("id", purchaseId, "user_id", jwtProvider.parseJwt(token));
+        Map<String, Object> map = Map.of("id", purchaseId, "userId", jwtProvider.parseJwt(token));
         PurchaseDto.Detail purchase = purchaseMapper.findPurchaseById(map);
         if (purchase == null)
             throw new PurchaseNotFoundException("Purchase not found for ID: " + purchaseId, ErrorCode.PURCHASE_NOT_FOUND);
+
         List<FileDto.Response> fileList = fileMapper.findAllByPurchaseId(purchaseId);
         List<PurchaseDto.Detail.ImageDto> imageList = new ArrayList<>();
-
         if (!fileList.isEmpty()) {
             List<FileDto.Response> generatedFiles = multiFileUtils.generateFilePath(fileList);
             for (FileDto.Response file : generatedFiles) {
@@ -115,12 +123,16 @@ public class PurchaseService {
             }
         }
         purchase.setImages(imageList);
+
+        UserDto manager = userService.findById(purchase.getManagerId());
+        purchase.setManager(manager);
+
         return purchase;
     }
 
     public PurchaseDto.Detail updatePurchase(PurchaseDto.Request purchaseRequest, String token, int id) {
         int userId = jwtProvider.parseJwt(token);
-        Map<String, Object> map = Map.of("id", id, "user_id", userId);
+        Map<String, Object> map = Map.of("id", id, "userId", userId);
         if (purchaseMapper.findPurchaseByIdAndUserId(map)) {
             purchaseMapper.updatePurchase(purchaseRequest);
             int purchaseId = purchaseRequest.getId();
@@ -135,7 +147,7 @@ public class PurchaseService {
 
     public void deletePurchase(int id, String token) {
         int userId = jwtProvider.parseJwt(token);
-        Map<String, Object> map = Map.of("id", id, "user_id", userId);
+        Map<String, Object> map = Map.of("id", id, "userId", userId);
         if (purchaseMapper.findPurchaseByIdAndUserId(map)) {
             purchaseMapper.deletePurchase(id);
             fileService.deleteAllFileByIds(fileService.findAllIdsByPurchaseId(id));

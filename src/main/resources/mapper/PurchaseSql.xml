@@ -14,7 +14,7 @@
             numerator,
             price,
             place,
-            status,
+            is_completed,
             created_at,
             manager_id,
             category_id
@@ -54,7 +54,7 @@
             p.numerator,
             p.price,
             p.place,
-            p.status,
+            p.is_completed,
             (
                 SELECT COUNT(*)
                 FROM nthing.like b
@@ -79,8 +79,8 @@
             <if test="search_keyword != null and search_keyword != ''">
                 AND (p.title LIKE CONCAT('%', #{search_keyword}, '%') OR p.description LIKE CONCAT('%', #{search_keyword}, '%'))
             </if>
-            <if test="status == true">
-                AND p.status = false
+            <if test="is_completed == true">
+                AND p.is_completed = false
             </if>
             <choose>
                 <when test="sort != null and sort != ''">
@@ -103,7 +103,7 @@
             p.numerator,
             p.price,
             p.place,
-            p.status,
+            p.is_completed,
             (
             SELECT COUNT(*)
             FROM nthing.like b
@@ -128,8 +128,8 @@
             <if test="search_keyword != null and search_keyword != ''">
                 AND (p.title LIKE CONCAT('%', #{search_keyword}, '%') OR p.description LIKE CONCAT('%', #{search_keyword}, '%'))
             </if>
-            <if test="status == true">
-                AND p.status = true
+            <if test="is_completed == true">
+                AND p.is_completed = true
             </if>
         <choose>
             <when test="sort != null and sort != ''">
@@ -143,27 +143,21 @@
 
     <select id="findPurchaseById" resultType="data.dto.PurchaseDto$Detail" parameterType="map">
         SELECT
-            a.id,
-            a.title,
-            a.description,
-            a.latitude,
-            a.longitude,
-            a.date,
-            a.denominator,
-            a.numerator,
-            a.status,
-            a.price,
-            a.place,
-            a.created_at,
-            a.updated_at,
-            d.nickname AS manager,
-            a.category_id,
+            p.id, p.title, p.description, p.latitude, p.longitude, p.date, p.denominator, p.numerator,
+            p.is_completed, p.price, p.place, p.created_at, p.updated_at, p.category_id, p.manager_id,
             c.name AS category_name,
+            (
+                SELECT COUNT(*)
+                FROM nthing.purchase_user pu
+                WHERE true
+                    AND pu.user_id = #{userId}
+                    AND pu.purchase_id = #{id}
+            ) AS is_joined,
             (
                 SELECT COUNT(*)
                 FROM nthing.like b
                 WHERE true
-                    AND b.user_id = #{user_id}
+                    AND b.user_id = #{userId}
                     AND b.purchase_id = #{id}
             ) AS is_liked,
             (
@@ -171,22 +165,22 @@
                 FROM nthing.purchase p
                 WHERE true
                     AND p.id = #{id}
-                    AND p.manager_id = #{user_id}
+                    AND p.manager_id = #{userId}
             ) AS is_manager
         FROM
-            nthing.purchase AS a
-                LEFT JOIN category c ON a.category_id = c.id
-                LEFT JOIN user d ON a.manager_id = d.id
-        WHERE
-            a.id = #{id}
-            AND a.delete_yn = 0
+            nthing.purchase AS p
+                LEFT JOIN category c ON p.category_id = c.id
+                LEFT JOIN user u ON p.manager_id = u.id
+        WHERE TRUE
+            AND p.id = #{id}
+            AND p.delete_yn = 0
     </select>
 
     <select id="findPurchaseByIdAndUserId" resultType="boolean" parameterType="map">
         SELECT COUNT(*) > 0 AS isExist
         FROM nthing.purchase
         WHERE id = #{id}
-            AND manager_id = #{user_id}
+            AND manager_id = #{userId}
             AND delete_yn = 0
     </select>
 
@@ -201,7 +195,7 @@
             p.numerator,
             p.price,
             p.place,
-            p.status,
+            p.is_completed,
             (
                 SELECT COUNT(*)
                 FROM nthing.like b
@@ -227,8 +221,8 @@
             <if test="search_keyword != null and search_keyword != ''">
                 AND (p.title LIKE CONCAT('%', #{search_keyword}, '%') OR p.description LIKE CONCAT('%', #{search_keyword}, '%'))
             </if>
-            <if test="status == true">
-                AND p.status = true
+            <if test="is_completed == true">
+                AND p.is_completed = true
             </if>
         <choose>
             <when test="sort != null and sort != ''">
@@ -249,7 +243,7 @@
             date = #{date},
             denominator = #{denominator},
             numerator = #{numerator},
-            status = #{status},
+            is_completed = #{is_completed},
             price = #{price},
             place = #{place},
             updated_at = NOW(),

@@ -81,7 +81,7 @@ public class PurchaseDto {
         private int price;
         private String place;
         private int isCompleted;
-        private boolean isLiked;
+        private int isLiked;
         private String image;
     }
 

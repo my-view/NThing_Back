@@ -4,10 +4,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import data.constants.ErrorCode;
 import data.dto.*;
-import data.exception.AllParticipantsJoinedException;
-import data.exception.AlreadyJoinedException;
-import data.exception.InvalidRequestException;
-import data.exception.PurchaseNotFoundException;
+import data.exception.*;
 import data.mapper.FileMapper;
 import data.mapper.PurchaseMapper;
 import data.mapper.PurchaseUserMapper;
@@ -53,8 +50,11 @@ public class PurchaseService {
         fileService.saveFiles(purchaseId, files);
 
         // purchaseUser 생성
-        Map<String, Integer> data = Map.of("purchaseId", purchaseId, "userId", userId);
-        purchaseUserMapper.createPurchaseUser(data);
+        PurchaseUserDto purchaseUserDto = PurchaseUserDto.builder()
+                .purchaseId(purchaseId)
+                .userId(userId)
+                .build();
+        purchaseUserMapper.createPurchaseUser(purchaseUserDto);
 
         // 채팅방 생성
         chatService.createChatRoom(ChatRoomDto.builder().purchaseId(purchaseId).build());
@@ -156,35 +156,30 @@ public class PurchaseService {
         }
     }
 
-    public void joinPurchase(int purchaseId, String token) {
-        int userId = jwtProvider.parseJwt(token);
-        Map<String, Integer> data = Map.of(
-                "purchaseId", purchaseId,
-                "userId", userId
-        );
-
-        Map<String, Object> map = Map.of("id", purchaseId, "user_id", userId);
-        PurchaseDto.Detail purchase = purchaseMapper.findPurchaseById(map);
-
-        if (purchase == null) {
-            throw new PurchaseNotFoundException("Purchase not found for ID: " + purchaseId, ErrorCode.PURCHASE_NOT_FOUND);
-        }
+    public void joinPurchase(PurchaseUserDto purchaseUserDto) {
+        PurchaseDto.Detail purchase = validateAndGetPurchase(purchaseUserDto);
 
         if (purchase.getDenominator() == purchase.getNumerator()) {
             throw new AllParticipantsJoinedException("All participants have already joined", ErrorCode.ALL_PARTICIPANTS_JOINED);
         }
 
-        PurchaseUserDto purchaseUserDto = purchaseUserMapper.findByPurchaseIdAndUserId(data);
-        if (purchaseUserDto != null) {
+        if (purchaseUserMapper.findByPurchaseIdAndUserId(purchaseUserDto) != null) {
             throw new AlreadyJoinedException("already joined", ErrorCode.ALREADY_JOINED);
         }
 
-        purchaseUserMapper.createPurchaseUser(data);
-        Map<String, Integer> param = Map.of(
-                "id", purchaseId,
-                "numerator", purchase.getNumerator() + 1
-        );
-        purchaseMapper.joinPurchase(param);
+        purchaseUserMapper.createPurchaseUser(purchaseUserDto);
+        updatePurchaseNumerator(purchase, 1);
+    }
+
+    public void leavePurchase(PurchaseUserDto purchaseUserDto) {
+        PurchaseDto.Detail purchase = validateAndGetPurchase(purchaseUserDto);
+
+        if (purchaseUserMapper.findByPurchaseIdAndUserId(purchaseUserDto) == null) {
+            throw new NotJoinedException("Not joined in this trade", ErrorCode.NOT_JOINED);
+        }
+
+        purchaseUserMapper.deletePurchaseUser(purchaseUserDto);
+        updatePurchaseNumerator(purchase, -1);
     }
 
     public List<PurchaseDto.Summary> findByManagerId(Map<String, Object> map) {
@@ -228,5 +223,36 @@ public class PurchaseService {
                 break;
         }
         return radius;
+    }
+
+    private PurchaseDto.Detail validateAndGetPurchase(PurchaseUserDto purchaseUserDto) {
+        Map<String, Object> map = Map.of(
+                "id", purchaseUserDto.getPurchaseId(),
+                "user_id", purchaseUserDto.getUserId()
+        );
+        PurchaseDto.Detail purchase = purchaseMapper.findPurchaseById(map);
+
+        if (purchase == null) {
+            throw new PurchaseNotFoundException("Purchase not found for ID: " + purchaseUserDto.getPurchaseId(), ErrorCode.PURCHASE_NOT_FOUND);
+        }
+        return purchase;
+    }
+
+    private void updatePurchaseNumerator(PurchaseDto.Detail purchase, int change) {
+        PurchaseDto.Request purchaseRequest = PurchaseDto.Request.builder()
+                .id(purchase.getId())
+                .title(purchase.getTitle())
+                .description(purchase.getDescription())
+                .latitude(purchase.getLatitude())
+                .longitude(purchase.getLongitude())
+                .date(String.valueOf(purchase.getDate()))
+                .denominator(purchase.getDenominator())
+                .numerator(purchase.getNumerator() + change)
+                .price(purchase.getPrice())
+                .place(purchase.getPlace())
+                .category_id(purchase.getCategoryId())
+                .build();
+
+        purchaseMapper.updatePurchase(purchaseRequest);
     }
 }

@@ -3,10 +3,12 @@ package data.controller;
 import data.constants.ErrorCode;
 import data.dto.ApiResult;
 import data.dto.FileDto;
+import data.dto.PurchaseUserDto;
 import data.exception.ValidationException;
 import data.service.FileService;
 import data.service.PurchaseService;
 import data.dto.PurchaseDto;
+import data.util.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +26,7 @@ public class PurchaseController {
 
     private final PurchaseService purchaseService;
     private final FileService fileService;
+    private final JwtProvider jwtProvider;
 
     @PostMapping("/purchase")
     public ResponseEntity<ApiResult<PurchaseDto.Detail>> createPurchase(
@@ -110,8 +113,25 @@ public class PurchaseController {
             @PathVariable int purchaseId,
             @RequestHeader("Authorization") String token
     ) {
-        purchaseService.joinPurchase(purchaseId, token);
+        PurchaseUserDto purchaseUserDto = PurchaseUserDto.builder()
+                .purchaseId(purchaseId)
+                .userId(jwtProvider.parseJwt(token))
+                .build();
+        purchaseService.joinPurchase(purchaseUserDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResult.created());
+    }
+
+    @DeleteMapping("/purchase/{purchaseId}/leave")
+    public ResponseEntity<ApiResult<?>> leavePurchase(
+            @PathVariable int purchaseId,
+            @RequestHeader("Authorization") String token
+    ) {
+        PurchaseUserDto purchaseUserDto = PurchaseUserDto.builder()
+                .purchaseId(purchaseId)
+                .userId(jwtProvider.parseJwt(token))
+                .build();
+        purchaseService.leavePurchase(purchaseUserDto);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResult.noContent());
     }
 
     @GetMapping("/purchases/manager")

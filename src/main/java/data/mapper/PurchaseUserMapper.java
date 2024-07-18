@@ -7,6 +7,7 @@ import java.util.Map;
 
 @Mapper
 public interface PurchaseUserMapper {
-    void createPurchaseUser(Map<String, Integer> data);
-    PurchaseUserDto findByPurchaseIdAndUserId(Map<String, Integer> data);
+    void createPurchaseUser(PurchaseUserDto purchaseUserDto);
+    void deletePurchaseUser(PurchaseUserDto purchaseUserDto);
+    PurchaseUserDto findByPurchaseIdAndUserId(PurchaseUserDto purchaseUserDto);
 }

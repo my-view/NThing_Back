@@ -1,13 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="data.mapper.PurchaseUserMapper">
-    <insert id="createPurchaseUser" parameterType="map">
+
+    <insert id="createPurchaseUser" parameterType="purchaseUserDto">
         insert into purchase_user
             (user_id, purchase_id)
         values
             (#{userId}, #{purchaseId})
     </insert>
-    <select id="findByPurchaseIdAndUserId" parameterType="map" resultType="purchaseUserDto">
+
+    <delete id="deletePurchaseUser" parameterType="purchaseUserDto">
+        delete from purchase_user
+        where purchase_id = #{purchaseId}
+        and user_id = #{userId}
+    </delete>
+
+    <select id="findByPurchaseIdAndUserId" parameterType="purchaseUserDto" resultType="purchaseUserDto">
         select *
         from purchase_user
         <trim prefix="where" prefixOverrides="and">
@@ -15,4 +23,5 @@
             and user_id = #{userId}
         </trim>
     </select>
+
 </mapper>

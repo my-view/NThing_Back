@@ -17,6 +17,7 @@ public class PurchaseDto {
 
     @Getter
     @Setter
+    @Builder
     @AllArgsConstructor
     @NoArgsConstructor
     public static class Request {

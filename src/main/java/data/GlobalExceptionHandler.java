@@ -137,6 +137,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.valueOf(e.getErrorCode().getStatus()));
     }
 
+    @ExceptionHandler(NotJoinedException.class)
+    public ResponseEntity<Object> handleNotJoinedException(NotJoinedException e) {
+        log.error("Not joined in this trade", e);
+        ErrorResponse errorResponse = new ErrorResponse(ErrorCode.NOT_JOINED);
+        return new ResponseEntity<>(errorResponse, HttpStatus.valueOf(e.getErrorCode().getStatus()));
+    }
+
     @ExceptionHandler(AllParticipantsJoinedException.class)
     public ResponseEntity<Object> handleAllParticipantsJoinedException(AllParticipantsJoinedException e) {
         log.error("All participants have already joined", e);

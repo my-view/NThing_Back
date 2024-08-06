@@ -13,10 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
-import java.util.Map;
 
 @Service
 @Slf4j
@@ -35,34 +31,38 @@ public class UserService {
         this.multiFileUtils = multiFileUtils;
     }
 
-    public UserDto updateUser(Map<String, Object> map, MultipartFile file) {
-        String token = (String) map.get("token");
-        int userId = jwtProvider.parseJwt(token);
-        map.put("userId", userId);
-        if (file != null) {
-            String url = multiFileUtils.getDomain() + multiFileUtils.uploadFile(file, "user").getSave_name();
-            map.put("profileImage", url);
+    public UserDto.Detail updateUser(UserDto.Update userUpdate) {
+        if (userUpdate.getProfileImage() != null) {
+            String url = multiFileUtils.getDomain() + multiFileUtils.uploadFile(userUpdate.getProfileImage(), "user").getSave_name();
+            userUpdate.setProfileImageUrl(url);
         }
-        userMapper.updateUser(map);
-        return findById(userId);
+        userMapper.updateUser(userUpdate);
+        return findById(userUpdate.getId());
     }
 
-    public List<UserDto> findAll() {
-        return userMapper.findAll();
-    }
+    public UserDto.Detail findById(int userId) {
+        UserDto.User user = userMapper.findUser(UserDto.Search.builder()
+                .id(userId)
+                .build());
 
-    public UserDto findById(int userId) {
-        UserDto user = userMapper.findById(userId);
-        user.setCollege(collegeMapper.selectCollegeById(user.getCollegeId()));
         if (user == null) {
             throw new UserNotFoundException("User not found for the provided token.", ErrorCode.USER_NOT_FOUND);
         }
-        return user ;
+
+        return UserDto.Detail.builder()
+                .id(user.getId())
+                .provider(user.getProvider())
+                .nickname(user.getNickname())
+                .email(user.getEmail())
+                .profileImage(user.getProfileImage())
+                .credit(user.getCredit())
+                .subscriptionDate(user.getSubscriptionDate())
+                .college(collegeMapper.selectCollegeById(user.getCollegeId()))
+                .build();
     }
 
-    public void deleteUser(String token) {
-        int loginId = jwtProvider.parseJwt(token);
-        userMapper.deleteUser(loginId);
+    public void deleteUser(int userId) {
+        userMapper.deleteUser(userId);
     }
 
     public ResponseEntity<MessageTokenDto> checkRefreshToken(String token) {
@@ -78,7 +78,7 @@ public class UserService {
             } else  {
                 int id = jwtProvider.parseJwt(token);
                 // 저장된 리프레시 토큰과 비교
-                String saved_token = userMapper.getTokenById(id);
+                String saved_token = userMapper.findUser(UserDto.Search.builder().id(id).build()).getRefreshToken();
                 if (!saved_token.equals(jwtProvider.BearerRemove(token))) {
                     throw new UnauthorizedException("유효하지 않은 토큰", ErrorCode.UNAUTHORIZED);
                 } else {

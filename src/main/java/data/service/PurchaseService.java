@@ -124,7 +124,7 @@ public class PurchaseService {
         }
         purchase.setImages(imageList);
 
-        UserDto manager = userService.findById(purchase.getManagerId());
+        UserDto.Detail manager = userService.findById(purchase.getManagerId());
         purchase.setManager(manager);
 
         return purchase;

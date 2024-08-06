@@ -112,7 +112,7 @@ public class PurchaseDto {
         @JsonIgnore
         private int managerId;
         @JsonIgnoreProperties({"provider", "provider_id", "email", "credit", "subscription_date", "college"})
-        private UserDto manager;
+        private UserDto.Detail manager;
         private List<ImageDto> images;
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
         private Timestamp createdAt;

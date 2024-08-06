@@ -27,10 +27,11 @@ public class LoginService {
 
 
     public MessageTokenDto googleLogin(IdToken token) throws FirebaseAuthException {
-        String idToken = token.getIdToken();
-        FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(idToken);
-
-        if (duplicatedEmail(decodedToken.getEmail())) {
+        FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(token.getIdToken());
+        UserDto.User user = userMapper.findUser(UserDto.Search.builder()
+                .email(decodedToken.getEmail())
+                .build());
+        if (user != null) {
             return handleLoginSuccess(decodedToken);
         } else {
             return handleSignupSuccess(decodedToken);
@@ -38,24 +39,25 @@ public class LoginService {
     }
 
     private MessageTokenDto handleLoginSuccess(FirebaseToken decodedToken) {
-        int findId = userMapper.findByEmail(decodedToken.getEmail());
-        UserDto userDto = userMapper.findById(findId);
-        JwtToken refreshToken = JwtToken.builder().token(jwtProvider.createRefreshToken(findId)).build();
-        userDto.setId(findId);
-        userDto.setRefreshToken(refreshToken.getToken());
-        userMapper.updateRefreshToken(userDto);
-        JwtToken jwtToken = JwtToken.builder().token(jwtProvider.createToken(findId)).build();
+        UserDto.User user = userMapper.findUser(UserDto.Search.builder()
+                .email(decodedToken.getEmail())
+                .build());
 
-        return new MessageTokenDto("구글 로그인 성공", jwtToken.getToken(), refreshToken.getToken());
+        JwtToken accessToken = JwtToken.builder().token(jwtProvider.createToken(user.getId())).build();
+        JwtToken refreshToken = JwtToken.builder().token(jwtProvider.createRefreshToken(user.getId())).build();
+
+        UserDto.Update userUpdate = UserDto.Update.builder()
+                .refreshToken(refreshToken.getToken())
+                .build();
+        userUpdate.setId(userUpdate.getId());
+        userMapper.updateUser(userUpdate);
+
+        return new MessageTokenDto("구글 로그인 성공", accessToken.getToken(), refreshToken.getToken());
     }
 
     private MessageTokenDto handleSignupSuccess(FirebaseToken decodedToken) {
         JwtToken refreshToken = JwtToken.builder().token(signUp(decodedToken)).build();
-        int findId = jwtProvider.parseJwt(refreshToken.getToken());
-        UserDto userDto = userMapper.findById(findId);
-        userDto.setRefreshToken(refreshToken.getToken());
         JwtToken jwtToken = JwtToken.builder().token(signUp(decodedToken)).build();
-
         return new MessageTokenDto("구글 로그인 성공", jwtToken.getToken(), refreshToken.getToken());
     }
 
@@ -64,7 +66,7 @@ public class LoginService {
         String provider = identity.split("sign_in_provider=")[1].split("\\.")[0];
         String providerId = identity.split("google.com=\\[")[1].split("]")[0];
 
-        UserDto userDto = UserDto.builder()
+        UserDto.Create user = UserDto.Create.builder()
                 .nickname(decodedToken.getName())
                 .email(decodedToken.getEmail())
                 .profileImage(decodedToken.getPicture())
@@ -72,17 +74,16 @@ public class LoginService {
                 .provider(provider)
                 .build();
 
-        return jwtProvider.createToken(userMapper.join(userDto));
-    }
-
-    private boolean duplicatedEmail(String email) {
-        return userMapper.isValidEmail(email);
+        return jwtProvider.createToken(userMapper.join(user));
     }
 
     public ResponseEntity<ApiResult<?>> kakaoLogin(IdToken token) {
         // 카카오에 사용자 정보 요청
         String kakaoAccesstoken = token.getIdToken();
         JsonNode userInfo = getUserInfo(kakaoAccesstoken);
+        UserDto.User user = userMapper.findUser(UserDto.Search.builder()
+                .email(userInfo.get("kakao_account").get("email").asText())
+                .build());
 
         if(!userInfo.get("kakao_account").get("has_email").asText().equals("true")) {
             // 사용자의 이메일 정보가 없는 경우 -> 오류
@@ -90,33 +91,37 @@ public class LoginService {
             errorResponse.setMessage("이메일 정보 없음");
             return ResponseEntity.badRequest().body(ApiResult.error(errorResponse));
         }
-        UserDto userDto = new UserDto();
         // 가입된 사용자가 아닌 경우
-        if(!duplicatedEmail(userInfo.get("kakao_account").get("email").asText())) {
+        if(user == null) {
             // 현재 가입되지 않은 사용자의 경우 -> 회원가입
             String profileImage = userInfo.at("/properties/profile_image").asText();
             profileImage = profileImage.replaceFirst("http://", "https://");
-            userDto = UserDto.builder()
+            UserDto.Create userCreate = UserDto.Create.builder()
                     .provider("kakao")
                     .providerId(userInfo.at("/id").asText())
                     .nickname(userInfo.at("/kakao_account/profile/nickname").asText())
                     .email(userInfo.at("/kakao_account/email").asText())
                     .profileImage(profileImage)
                     .build();
-            userMapper.join(userDto);
+            userMapper.join(userCreate);
         }
 
         //로그인
-        int findId = userMapper.findByEmail(userInfo.get("kakao_account").get("email").asText());
+        int findId = userMapper.findUser(UserDto.Search.builder()
+                .email(userInfo.get("kakao_account").get("email").asText())
+                .build()).getId();
 
         JwtToken refreshToken = JwtToken.builder().token(jwtProvider.createRefreshToken(findId)).build();
 
-        userDto.setId(findId);
-        userDto.setRefreshToken(refreshToken.getToken());
-        userMapper.updateRefreshToken(userDto);
+        UserDto.Update userUpdate = UserDto.Update.builder()
+                .refreshToken(refreshToken.getToken())
+                .build();
+        userUpdate.setId(findId);
+        userMapper.updateUser(userUpdate);
 
         JwtToken jwtToken = JwtToken.builder().token(jwtProvider.createToken(findId)).build();
         MessageTokenDto messageTokenDto = new MessageTokenDto("카카오 로그인 성공", jwtToken.getToken(), refreshToken.getToken());
+
         return ResponseEntity.ok(ApiResult.ok(messageTokenDto));
     }
 

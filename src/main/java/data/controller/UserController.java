@@ -1,9 +1,7 @@
 package data.controller;
 
-import data.dto.ApiResult;
-import data.dto.MessageTokenDto;
-import data.dto.PurchaseDto;
-import data.dto.UserDto;
+import data.constants.ErrorCode;
+import data.dto.*;
 import data.service.UserService;
 import data.service.LikeService;
 import data.util.JwtProvider;
@@ -14,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.List;
@@ -31,21 +28,22 @@ public class UserController {
     private final JwtProvider jwtProvider;
 
     @GetMapping("")
-    public ResponseEntity<ApiResult<UserDto>> findById(@RequestHeader("Authorization") String token) {
-        int userId = jwtProvider.parseJwt(token);
-        return ResponseEntity.ok(ApiResult.ok(userService.findById(userId)));
+    public ResponseEntity<ApiResult<UserDto.Detail>> findById(
+            @RequestHeader("Authorization") String token
+    ) {
+        return ResponseEntity.ok(ApiResult.ok(userService.findById(jwtProvider.parseJwt(token))));
     }
 
     @PatchMapping("")
-    public ResponseEntity<ApiResult<UserDto>> updateUser(
+    public ResponseEntity<ApiResult<?>> updateUser(
             @RequestHeader("Authorization") String token,
-            @RequestParam(value = "nickname", required = false, defaultValue = "") String nickname,
-            @RequestParam(value = "profile_image", required = false) MultipartFile file
+            @ModelAttribute UserDto.Update user
     ) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("token", token);
-        map.put("nickname", nickname);
-        return ResponseEntity.ok(ApiResult.ok(userService.updateUser(map, file)));
+        if(isAllFieldsNull(user)) {
+            return ResponseEntity.badRequest().body(ApiResult.error(new ErrorResponse(ErrorCode.BAD_REQUEST)));
+        }
+        user.setId(jwtProvider.parseJwt(token));
+        return ResponseEntity.ok(ApiResult.ok(userService.updateUser(user)));
     }
 
     @GetMapping("/like")
@@ -65,7 +63,7 @@ public class UserController {
 
     @DeleteMapping("")
     public ResponseEntity<ApiResult<?>> deleteUser(@RequestHeader("Authorization") String token) {
-        userService.deleteUser(token);
+        userService.deleteUser(jwtProvider.parseJwt(token));
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResult.noContent());
     }
 
@@ -73,5 +71,11 @@ public class UserController {
     @PostMapping("/retoken")
     public ResponseEntity<MessageTokenDto> checkRefreshToken(@RequestHeader("Authorization") String token) {
         return userService.checkRefreshToken(token);
+    }
+
+    private boolean isAllFieldsNull(UserDto.Update dto) {
+        return dto.getNickname() == null &&
+                dto.getProfileImage() == null &&
+                dto.getCollegeId() == null;
     }
 }

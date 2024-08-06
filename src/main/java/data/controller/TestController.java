@@ -1,8 +1,6 @@
 package data.controller;
 
-import data.dto.ApiResult;
-import data.dto.ErrorResponse;
-import data.dto.MessageTokenDto;
+import data.dto.*;
 import data.service.UserService;
 import data.util.JwtProvider;
 import io.swagger.v3.oas.annotations.Operation;
@@ -35,8 +33,11 @@ public class TestController {
     public ResponseEntity<ApiResult<MessageTokenDto>> getTestToken(@PathVariable int id) {
         String accessToken = jwtProvider.createToken(id);
         String refreshToken = jwtProvider.createRefreshToken(id);
-        int userId = jwtProvider.parseJwt(accessToken);
-        userService.findById(userId);
+        UserDto.Update user = UserDto.Update.builder()
+                .refreshToken(refreshToken)
+                .build();
+        user.setId(id);
+        userService.updateUser(user);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResult.created(new MessageTokenDto("테스트 토큰 생성", accessToken, refreshToken)));

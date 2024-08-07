@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class UserDto {
 
     @Getter
+    @Setter
     public static class User {
         private int id;
         private String provider;
@@ -60,7 +61,7 @@ public class UserDto {
     @Setter
     @Builder
     public static class Search {
-        private int id;
+        private Integer id;
         private String email;
     }
 

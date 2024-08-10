@@ -3,9 +3,9 @@
 <mapper namespace="data.mapper.UserMapper">
     <insert id="join" parameterType="data.dto.UserDto$Create" useGeneratedKeys="true" keyProperty="id">
         insert into user
-            (id, nickname, email, profile_image, credit, subscription_date, college_id, provider_id, provider)
+            (nickname, email, profile_image, credit, subscription_date, college_id, provider_id, provider)
         values
-        (null, #{nickname}, #{email}, #{profileImage}, #{credit}, now(), null, #{providerId}, #{provider})
+        (#{nickname}, #{email}, #{profileImage}, 0, now(), null, #{providerId}, #{provider})
     </insert>
 
     <select id="findUser" parameterType="data.dto.UserDto$Search" resultType="data.dto.UserDto$User">

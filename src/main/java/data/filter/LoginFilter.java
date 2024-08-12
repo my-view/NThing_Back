@@ -60,8 +60,8 @@ public class LoginFilter implements Filter{
 
         if(isLoginCheckPath(requestURI)) { // 검증해야하는 URI인 경우
             if (accessToken != null) { // 엑세스 토큰이 null이 아니면
-                chain.doFilter(request, response);
-//                jwtProvider.parseJwt(accessToken);
+//                chain.doFilter(request, response);
+                jwtProvider.parseJwt(accessToken);
 //                try {
 //                    jwtProvider.parseJwt(accessToken);
 //                } catch (ExpiredJwtException e) {
@@ -71,7 +71,7 @@ public class LoginFilter implements Filter{
                 throw new UnauthorizedException("null token", ErrorCode.UNAUTHORIZED);
             }
         }
-//        chain.doFilter(request, response);
+        chain.doFilter(request, response);
     }
 
     /* 화이트리스트는 인증 체크를 하지 않음 */

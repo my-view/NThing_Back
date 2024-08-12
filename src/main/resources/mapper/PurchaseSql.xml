@@ -4,37 +4,9 @@
 
     <insert id="createPurchase" parameterType="data.dto.PurchaseDto$Request" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO nthing.purchase
-        (
-            title,
-            description,
-            latitude,
-            longitude,
-            date,
-            denominator,
-            numerator,
-            price,
-            place,
-            is_completed,
-            created_at,
-            manager_id,
-            category_id
-        )
+            (title, description, latitude, longitude, date, denominator, numerator, price, place, is_completed,created_at, manager_id, category_id)
         VALUES
-            (
-                #{title},
-                #{description},
-                #{latitude},
-                #{longitude},
-                #{date},
-                #{denominator},
-                #{numerator},
-                #{price},
-                #{place},
-                0,
-                now(),
-                #{manager_id},
-                #{category_id}
-            )
+            (#{title}, #{description}, #{latitude}, #{longitude}, #{date}, #{denominator}, #{numerator}, #{price}, #{place}, 0, now(), #{manager_id}, #{category_id})
     </insert>
 
     <!-- 첫 번째 쿼리: 위치 설정 -->
@@ -232,6 +204,18 @@
                 ORDER BY -p.created_at
             </otherwise>
         </choose>
+    </select>
+
+    <select id="findPurchase" parameterType="data.dto.PurchaseDto$Search" resultType="data.dto.PurchaseDto$Purchase">
+        select *
+        from nthing.purchase
+        where true
+            <if test="purchaseId != null">
+                and id = #{purchaseId}
+            </if>
+            <if test="managerId != null">
+                and manager_id = #{managerId}
+            </if>
     </select>
 
     <update id="updatePurchase" parameterType="data.dto.PurchaseDto$Request" useGeneratedKeys="true" keyProperty="id">

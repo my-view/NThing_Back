@@ -18,6 +18,29 @@ public class PurchaseDto {
     @Getter
     @Setter
     @Builder
+    public static class Purchase {
+        private int id;
+        private String title;
+        private String description;
+        private Double latitude;
+        private Double longitude;
+        private Timestamp date;
+        private int denominator;
+        private int numerator;
+        private int isCompleted;
+        private int price;
+        private String place;
+        private Timestamp createdAt;
+        private Timestamp updatedAt;
+        private Boolean deleteYn;
+        private Timestamp deletedAt;
+        private int manageId;
+        private int categoryId;
+    }
+
+    @Getter
+    @Setter
+    @Builder
     @AllArgsConstructor
     @NoArgsConstructor
     public static class Request {
@@ -62,6 +85,22 @@ public class PurchaseDto {
 
         // 삭제할 첨부파일 id List
         private List<Integer> removed_files;
+    }
+
+    @Getter
+    @Setter
+    @Builder
+    public static class Search {
+        private int purchaseId;
+        private int userId;
+        private int managerId;
+        private String searchKeyword;
+        private String sort;
+        private String status;
+        private Boolean isCompleted;
+        private Boolean isDelete;
+        private Double latitude;
+        private Double longitude;
     }
 
     @Getter

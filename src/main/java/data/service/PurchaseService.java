@@ -182,6 +182,18 @@ public class PurchaseService {
         updatePurchaseNumerator(purchase, -1);
     }
 
+    public void removeUserFromPurchaseByManager(int managerId, PurchaseUserDto purchaseUserDto) {
+        PurchaseDto.Purchase purchase = purchaseMapper.findPurchase(PurchaseDto.Search.builder()
+                .purchaseId(purchaseUserDto.getPurchaseId())
+                .managerId(managerId)
+                .build());
+        if (purchase != null) {
+            leavePurchase(purchaseUserDto);
+        } else {
+            throw new BadRequestException("You are not the manager of this purchase", ErrorCode.BAD_REQUEST);
+        }
+    }
+
     public List<PurchaseDto.Summary> findByManagerId(Map<String, Object> map) {
         String token = (String) map.get("token");
         if (StringUtils.hasText(token)) {

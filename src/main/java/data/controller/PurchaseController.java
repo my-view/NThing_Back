@@ -149,4 +149,18 @@ public class PurchaseController {
 
         return ResponseEntity.ok(ApiResult.ok(purchaseService.findByManagerId(map)));
     }
+
+    @DeleteMapping("/purchase/{purchaseId}/user/{userId}")
+    public ResponseEntity<ApiResult<?>> removeUserFromPurchaseByManager (
+            @RequestHeader("Authorization") String token,
+            @PathVariable int purchaseId,
+            @PathVariable int userId
+    ) {
+        PurchaseUserDto purchaseUserDto = PurchaseUserDto.builder()
+                .purchaseId(purchaseId)
+                .userId(userId)
+                .build();
+        purchaseService.removeUserFromPurchaseByManager(jwtProvider.parseJwt(token), purchaseUserDto);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResult.noContent());
+    }
 }

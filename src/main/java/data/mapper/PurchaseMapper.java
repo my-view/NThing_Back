@@ -14,6 +14,7 @@ public interface PurchaseMapper {
     List<PurchaseDto.Summary> findByUserId(Map<String, Object> map);
     PurchaseDto.Detail findPurchaseById(Map<String, Object> map);
     boolean findPurchaseByIdAndUserId(Map<String, Object> map);
+    PurchaseDto.Purchase findPurchase(PurchaseDto.Search purchaseSearch);
     int updatePurchase(PurchaseDto.Request purchase);
     void deletePurchase(int id);
     void joinPurchase(Map<String, Integer> map);

@@ -28,7 +28,7 @@ public class UserController {
     private final JwtProvider jwtProvider;
 
     @GetMapping("")
-    public ResponseEntity<ApiResult<UserDto.Detail>> findById(
+    public ResponseEntity<ApiResult<?>> findById(
             @RequestHeader("Authorization") String token
     ) {
         return ResponseEntity.ok(ApiResult.ok(userService.findById(jwtProvider.parseJwt(token))));

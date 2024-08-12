@@ -1,6 +1,7 @@
 package data.util;
 
 import data.constants.ErrorCode;
+import data.exception.AccessTokenExpiredException;
 import data.exception.JsonProcessingException;
 import data.exception.UnauthorizedException;
 import io.jsonwebtoken.*;
@@ -62,19 +63,23 @@ public class JwtProvider {
     }
 
     public int parseJwt(String token) {
-        return Jwts.parser()
-                .setSigningKey(secret)
-                .parseClaimsJws(BearerRemove(token))
-                .getBody()
-                .get("loginId", Integer.class);
+        if (isValidToken(token)) {
+            return Jwts.parser()
+                    .setSigningKey(secret)
+                    .parseClaimsJws(BearerRemove(token))
+                    .getBody()
+                    .get("loginId", Integer.class);
+        } else {
+            throw new UnauthorizedException("invalid token", ErrorCode.UNAUTHORIZED);
+        }
     }
 
     // 액세스 토큰 유효성 확인
     public boolean isValidAccessToken(String token) {
         try {
             return isValidToken(token);
-        } catch (ExpiredJwtException e) {
-            throw new UnauthorizedException("invalid access token", ErrorCode.ACCESS_TOKEN_EXPIRED);
+        } catch (AccessTokenExpiredException e) {
+            throw new AccessTokenExpiredException("invalid access token", ErrorCode.ACCESS_TOKEN_EXPIRED);
         } catch (JwtException ex) {
             throw new JsonProcessingException("invalid input value", ErrorCode.INVALID_INPUT_VALUE);
         }
@@ -98,7 +103,6 @@ public class JwtProvider {
                 .parseClaimsJws(BearerRemove(token))
                 .getBody();
         return claims.getExpiration().after(new Date());
-
     }
 
     public String BearerRemove(String token) {

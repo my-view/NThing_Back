@@ -1,8 +1,10 @@
 package data.filter;
 
 import data.constants.ErrorCode;
+import data.exception.AccessTokenExpiredException;
 import data.exception.UnauthorizedException;
 import data.util.JwtProvider;
+import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.util.PatternMatchUtils;
 
 import javax.servlet.*;
@@ -58,14 +60,18 @@ public class LoginFilter implements Filter{
 
         if(isLoginCheckPath(requestURI)) { // 검증해야하는 URI인 경우
             if (accessToken != null) { // 엑세스 토큰이 null이 아니면
-                if (!jwtProvider.isValidAccessToken(accessToken)) { // 유효하지 않은 토큰의 경우
-                    throw new UnauthorizedException("invalid token", ErrorCode.UNAUTHORIZED);
-                }
+                chain.doFilter(request, response);
+//                jwtProvider.parseJwt(accessToken);
+//                try {
+//                    jwtProvider.parseJwt(accessToken);
+//                } catch (ExpiredJwtException e) {
+//                    throw new AccessTokenExpiredException("access token expired", ErrorCode.ACCESS_TOKEN_EXPIRED);
+//                }
             } else { // 엑세스 토큰이 없는 경우
                 throw new UnauthorizedException("null token", ErrorCode.UNAUTHORIZED);
             }
         }
-        chain.doFilter(request, response);
+//        chain.doFilter(request, response);
     }
 
     /* 화이트리스트는 인증 체크를 하지 않음 */

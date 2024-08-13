@@ -28,9 +28,10 @@ public class JwtProvider {
         claims.put("loginId",loginId);
 
         Date now = new Date();
-        Date expiration = new Date(now.getTime() + Duration.ofSeconds(30).toMillis()); // 만료기간 30초
-//        Date expiration = new Date(now.getTime() + Duration.ofMinutes(1).toMillis()); // 만료기간 1분
-//        Date expiration = new Date(now.getTime() + Duration.ofDays(1).toMillis()); // 만료기간 1일
+        Date expiration = new Date(now.getTime() + Duration.ofDays(1).toMillis()); // 만료기간 1일
+        if (loginId == 101) {
+            expiration = new Date(now.getTime() + Duration.ofSeconds(30).toMillis()); // 만료기간 30초
+        }
 
         return Jwts.builder()
                 .setClaims(claims)
@@ -48,8 +49,10 @@ public class JwtProvider {
         claims.put("loginId",loginId);
 
         Date now = new Date();
-        Date expiration = new Date(now.getTime() + Duration.ofMinutes(1).toMillis()); // 만료기간 1분
-//        Date expiration = new Date(now.getTime() + Duration.ofDays(30).toMillis()); // 만료기간 30일
+        Date expiration = new Date(now.getTime() + Duration.ofDays(30).toMillis()); // 만료기간 30일
+        if (loginId == 101) {
+            expiration = new Date(now.getTime() + Duration.ofMinutes(1).toMillis()); // 만료기간 1분
+        }
         claims.put("expiration", expiration);
 
         return Jwts.builder()
@@ -63,25 +66,19 @@ public class JwtProvider {
     }
 
     public int parseJwt(String token) {
-        if (isValidToken(token)) {
-            return Jwts.parser()
-                    .setSigningKey(secret)
-                    .parseClaimsJws(BearerRemove(token))
-                    .getBody()
-                    .get("loginId", Integer.class);
-        } else {
-            throw new UnauthorizedException("invalid token", ErrorCode.UNAUTHORIZED);
-        }
+        return Jwts.parser()
+                .setSigningKey(secret)
+                .parseClaimsJws(BearerRemove(token))
+                .getBody()
+                .get("loginId", Integer.class);
     }
 
     // 액세스 토큰 유효성 확인
     public boolean isValidAccessToken(String token) {
         try {
             return isValidToken(token);
-        } catch (AccessTokenExpiredException e) {
+        } catch (ExpiredJwtException e) {
             throw new AccessTokenExpiredException("invalid access token", ErrorCode.ACCESS_TOKEN_EXPIRED);
-        } catch (JwtException ex) {
-            throw new JsonProcessingException("invalid input value", ErrorCode.INVALID_INPUT_VALUE);
         }
     }
 
